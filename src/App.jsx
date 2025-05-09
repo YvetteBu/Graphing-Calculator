@@ -8,7 +8,6 @@ const math = create(all);
 function App() {
   const [functions, setFunctions] = useState([{ id: 1, name: 'f(x)', expr: '', color: '#1f77b4' }]);
   const [selectedId, setSelectedId] = useState(1);
-  const [keyboardMode, setKeyboardMode] = useState('symbols');
   const inputRef = useRef(null);
 
   // Re-render MathJax preview when expression changes
@@ -38,7 +37,9 @@ function App() {
           zerolinecolor: 'white',
           linecolor: 'white',
           tickcolor: 'white',
-          range: [-10, 10]
+          range: [-10, 10],
+          anchor: 'y',
+          position: 0.5
         },
         yaxis: {
           color: 'white',
@@ -46,7 +47,9 @@ function App() {
           zerolinecolor: 'white',
           linecolor: 'white',
           tickcolor: 'white',
-          range: [-10, 10]
+          range: [-10, 10],
+          anchor: 'x',
+          position: 0.5
         },
         margin: { t: 20 }
       },
@@ -118,14 +121,20 @@ function App() {
             gridcolor: '#333',
             zerolinecolor: 'white',
             linecolor: 'white',
-            tickcolor: 'white'
+            tickcolor: 'white',
+            range: [-10, 10],
+            anchor: 'y',
+            position: 0.5
           },
           yaxis: {
             color: 'white',
             gridcolor: '#333',
             zerolinecolor: 'white',
             linecolor: 'white',
-            tickcolor: 'white'
+            tickcolor: 'white',
+            range: [-10, 10],
+            anchor: 'x',
+            position: 0.5
           },
           margin: { t: 20 },
           dragmode: 'pan'
@@ -143,232 +152,65 @@ function App() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="graphing-calculator">
       <h2>Graphing Calculator</h2>
-      <textarea
-        ref={inputRef}
-        style={{
-          width: '300px',
-          fontSize: '18px',
-          padding: '8px 12px',
-          height: '2.5em',
-          backgroundColor: '#111',
-          color: 'white',
-          border: '1px solid #333',
-          borderRadius: '6px',
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
-        }}
-        placeholder="Enter expression (e.g. sin(x), x^2)"
-        value={functions.find(f => f.id === selectedId)?.expr || ''}
-        onChange={(e) => {
-          const updated = functions.map(f =>
-            f.id === selectedId ? { ...f, expr: e.target.value } : f
-          );
-          setFunctions(updated);
-        }}
-      />
-      <button
-        style={{
-          marginLeft: 10,
-          backgroundColor: '#1e1e1e',
-          color: 'white',
-          border: 'none',
-          padding: '10px 20px',
-          borderRadius: '8px',
-          fontWeight: 'bold'
-        }}
-        onClick={handlePlot}
-      >
-        Plot
-      </button>
       <div style={{ color: 'white', marginTop: '10px', minHeight: '2em' }}>
         <span>{'Preview: '}</span>
         <span id="preview-math">{`\\(${functions.find(f => f.id === selectedId)?.expr || ''}\\)`}</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap', gap: '40px', marginTop: '30px' }}>
-        <div id="plot" style={{ width: '600px', height: '400px' }}></div>
-        {keyboardMode === 'symbols' && (
-          <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '40px', flexWrap: 'wrap' }}>
-            {/* Symbols Section */}
-            <div>
-              {[
-                ['x', 'y', 'x²', 'x^y'],
-                ['(', ')', '<', '>'],
-                ['|a|', ',', '≤', '≥'],
-                ['√', 'π']
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                  {row.map((label) => (
-                    <button
-                      key={label}
-                      style={{
-                        backgroundColor: '#1e1e1e',
-                        color: 'white',
-                        fontSize: 'clamp(12px, 2vw, 16px)',
-                        padding: '0.6rem',
-                        border: '1px solid #444',
-                        borderRadius: '6px',
-                        textAlign: 'center',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        minWidth: '60px'
-                      }}
-                      onClick={() => {
-                        if (label === 'x²') insertAtCursor('^2');
-                        else if (label === 'x^y') insertAtCursor('^');
-                        else if (label === '√') {
-                          insertAtCursor('sqrt()');
-                          setTimeout(() => {
-                            inputRef.current.selectionStart = inputRef.current.selectionEnd = inputRef.current.selectionStart - 1;
-                          }, 0);
-                        } else insertAtCursor(label);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              ))}
-              <button
-                style={{
-                  backgroundColor: '#555',
-                  color: 'white',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  padding: '0.6rem',
-                  border: '1px solid #444',
-                  borderRadius: '6px',
-                  minWidth: '60px'
-                }}
-                onClick={() => setKeyboardMode(keyboardMode === 'symbols' ? 'abc' : 'symbols')}
-              >
-                {keyboardMode === 'symbols' ? 'ABC' : '123'}
-              </button>
-            </div>
-
-            {/* Numbers Section */}
-            <div>
-              {[
-                ['7', '8', '9', '÷'],
-                ['4', '5', '6', '×'],
-                ['1', '2', '3', '−'],
-                ['0', '.', '=', '+']
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                  {row.map((label) => (
-                    <button
-                      key={label}
-                      style={{
-                        backgroundColor: '#1e1e1e',
-                        color: 'white',
-                        fontSize: 'clamp(12px, 2vw, 16px)',
-                        padding: '0.6rem',
-                        border: '1px solid #444',
-                        borderRadius: '6px',
-                        textAlign: 'center',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        minWidth: '60px'
-                      }}
-                      onClick={() => {
-                        if (label === '÷') insertAtCursor('/');
-                        else if (label === '×') insertAtCursor('*');
-                        else if (label === '−') insertAtCursor('-');
-                        else insertAtCursor(label);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            {/* Function Section */}
-            <div>
-              {[
-                ['←', '→'],
-                ['DEL'],
-                ['ENTER']
-              ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px', justifyContent: 'center' }}>
-                  {row.map((label) => (
-                    <button
-                      key={label}
-                      style={{
-                        backgroundColor: '#1e1e1e',
-                        color: 'white',
-                        fontSize: 'clamp(12px, 2vw, 16px)',
-                        padding: '0.6rem',
-                        border: '1px solid #444',
-                        borderRadius: '6px',
-                        textAlign: 'center',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        minWidth: '60px'
-                      }}
-                      onClick={() => {
-                        if (label === 'DEL') {
-                          const currentExpr = functions.find(f => f.id === selectedId)?.expr || '';
-                          const newExpr = currentExpr.slice(0, -1);
-                          const updated = functions.map(f =>
-                            f.id === selectedId ? { ...f, expr: newExpr } : f
-                          );
-                          setFunctions(updated);
-                        } else if (label === 'ENTER') handlePlot();
-                        else if (label === '→') {
-                          const el = inputRef.current;
-                          if (el) {
-                            el.selectionStart = el.selectionEnd = Math.min(el.selectionStart + 1, (functions.find(f => f.id === selectedId)?.expr || '').length);
-                            el.focus();
-                          }
-                        }
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {keyboardMode === 'abc' && (
-          <div style={{ marginTop: '20px' }}>
-            {[
-              ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-              ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'θ'],
-              ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
-              ['↩', '!%', '[', ']', '{', '}', '~:', "',"]
-            ].map((row, i) => (
-              <div key={i} style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '10px' }}>
-                {row.map((key) => (
-                  <button
-                    key={key}
-                    style={{
-                      backgroundColor: '#1e1e1e',
-                      color: 'white',
-                      fontSize: 'clamp(12px, 2vw, 16px)',
-                      padding: '0.6rem',
-                      border: '1px solid #444',
-                      borderRadius: '6px',
-                      minWidth: '40px'
-                    }}
-                    onClick={() => {
-                      if (key === '↩') {
-                        setKeyboardMode('symbols');
-                      } else {
-                        insertAtCursor(key);
-                      }
-                    }}
-                  >
-                    {key}
-                  </button>
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
+      <div
+        style={{
+          flex: 1,
+          minWidth: '300px',
+          minHeight: '300px',
+          maxWidth: '100%',
+          height: '100%',
+          overflow: 'auto',
+          resize: 'both',
+          border: '1px solid #444',
+          borderRadius: '8px',
+          padding: '20px'
+        }}
+      >
+        <textarea
+          ref={inputRef}
+          style={{
+            width: '300px',
+            fontSize: '18px',
+            padding: '8px 12px',
+            height: '2.5em',
+            backgroundColor: '#111',
+            color: 'white',
+            border: '1px solid #333',
+            borderRadius: '6px',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
+          }}
+          placeholder="Enter expression (e.g. sin(x), x^2)"
+          value={functions.find(f => f.id === selectedId)?.expr || ''}
+          onChange={(e) => {
+            const updated = functions.map(f =>
+              f.id === selectedId ? { ...f, expr: e.target.value } : f
+            );
+            setFunctions(updated);
+          }}
+        />
+        <button
+          style={{
+            marginLeft: 10,
+            backgroundColor: '#1e1e1e',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '8px',
+            fontWeight: 'bold'
+          }}
+          onClick={handlePlot}
+        >
+          Plot
+        </button>
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap', gap: '40px', marginTop: '30px' }}>
+          <div id="plot" style={{ width: '600px', height: '400px' }}></div>
+        </div>
       </div>
     </div>
   );
