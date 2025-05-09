@@ -1,0 +1,21 @@
+{
+  "name": "graphing-calculator",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "mathjs": "^14.4.0",
+    "plotly.js": "^3.0.1",
+    "plotly.js-dist": "^3.0.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
